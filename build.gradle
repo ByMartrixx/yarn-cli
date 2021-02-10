@@ -18,17 +18,17 @@ repositories {
 }
 
 dependencies {
-    implementation 'org.jetbrains:annotations:20.1.0'
-
     // Use JUnit test framework.
     testImplementation 'junit:junit:4.13'
 
     // This dependency is used by the application.
-    implementation 'org.jline:jline:3.19.0'
     implementation 'net.fabricmc:tiny-mappings-parser:+'
-    implementation 'org.apache.httpcomponents.client5:httpclient5:5.0.3'
+    implementation 'org.jline:jline:3.19.0'
+    implementation 'org.fusesource.jansi:jansi:2.2.0' // Used by jline on windows
     implementation 'com.google.code.gson:gson:2.8.6'
-    implementation 'org.slf4j:slf4j-simple:2.0.0-alpha1'
+    implementation 'org.apache.httpcomponents.client5:httpclient5:5.0.3'
+    implementation 'org.slf4j:slf4j-simple:2.0.0-alpha1' // Used by Apache HttpClient
+
     compile 'org.jetbrains:annotations:20.1.0'
 }
 
