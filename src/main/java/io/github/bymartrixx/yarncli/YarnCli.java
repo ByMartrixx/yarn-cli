@@ -5,6 +5,7 @@ import static io.github.bymartrixx.yarncli.MappingsManager.NS_INTERMEDIARY;
 import static io.github.bymartrixx.yarncli.MappingsManager.NS_NAMED;
 import static io.github.bymartrixx.yarncli.MappingsManager.NS_OFFICIAL;
 
+import io.github.bymartrixx.yarncli.object.MappingsResult;
 import io.github.bymartrixx.yarncli.object.MinecraftLatest;
 import net.fabricmc.mapping.tree.ClassDef;
 import net.fabricmc.mapping.tree.Descriptored;
@@ -117,7 +118,7 @@ public class YarnCli {
                 if (args.length < 2) {
                     println("You must provide a class name!");
                 } else {
-                    List<MappingsManager.MappingsResult> mappingsData;
+                    List<MappingsResult> mappingsData;
                     try {
                         mappingsData = mappingsManager.getClassMappings(args[1]);
                     } catch (Exception e) {
@@ -150,7 +151,7 @@ public class YarnCli {
                 if (args.length < 2) {
                     println("You must provide a field name!");
                 } else {
-                    List<MappingsManager.MappingsResult> mappingsData;
+                    List<MappingsResult> mappingsData;
                     try {
                         mappingsData = mappingsManager.getFieldMappings(args[1]);
                     } catch (Exception e) {
@@ -183,7 +184,7 @@ public class YarnCli {
                 if (args.length < 2) {
                     println("You must provide a method name!");
                 } else {
-                    List<MappingsManager.MappingsResult> mappingsData;
+                    List<MappingsResult> mappingsData;
                     try {
                         mappingsData = mappingsManager.getMethodMappings(args[1]);
                     } catch (Exception e) {
@@ -253,7 +254,7 @@ public class YarnCli {
         }
     }
 
-    public static void formatPrint(List<MappingsManager.MappingsResult> results) {
+    public static void formatPrint(List<MappingsResult> results) {
         MappingResultsPrinter printer = result -> {
             if (result == null) {
                 return;
@@ -302,7 +303,7 @@ public class YarnCli {
         underline(); bold();
         printf("Minecraft %s / %d %s%n%n", mappingsManager.selectedVersion, results.size(), results.size() > 1 ? "results" : "result");
 
-        for (MappingsManager.MappingsResult result : results) {
+        for (MappingsResult result : results) {
             printer.print(result);
         }
     }
@@ -361,6 +362,6 @@ public class YarnCli {
 
     @FunctionalInterface
     interface MappingResultsPrinter {
-        void print(MappingsManager.MappingsResult result);
+        void print(MappingsResult result);
     }
 }

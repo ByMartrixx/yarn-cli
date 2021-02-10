@@ -2,6 +2,7 @@ package io.github.bymartrixx.yarncli;
 
 import com.google.gson.Gson;
 import io.github.bymartrixx.yarncli.object.LauncherMetaResponse;
+import io.github.bymartrixx.yarncli.object.MappingsResult;
 import io.github.bymartrixx.yarncli.object.MetaYarnVersion;
 import io.github.bymartrixx.yarncli.object.MinecraftLatest;
 import net.fabricmc.mapping.tree.*;
@@ -282,14 +283,4 @@ public class MappingsManager {
         Collection<? extends Descriptored> provide(ClassDef classDef);
     }
 
-    public static class MappingsResult {
-        public final ClassDef classDef;
-        @Nullable
-        public final Descriptored member;
-
-        public MappingsResult(ClassDef classDef, @Nullable Descriptored member) {
-            this.classDef = classDef;
-            this.member = member;
-        }
-    }
 }
