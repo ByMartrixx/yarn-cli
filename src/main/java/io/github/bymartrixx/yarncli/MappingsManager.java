@@ -229,7 +229,13 @@ public class MappingsManager {
 
     @Nullable
     private String getLatestYarnVersion(String mcVersion) {
-        String encodedVersion = URLEncoder.encode(mcVersion, StandardCharsets.UTF_8);
+        String encodedVersion = null;
+        try {
+            //noinspection CharsetObjectCanBeUsed // encode(String, Charset) not in java 8
+            encodedVersion = URLEncoder.encode(mcVersion, "utf-8");
+        } catch (UnsupportedEncodingException e) {
+            return null; // Should not happen
+        }
         String url = YARN_URL.replace("{VERSION}", encodedVersion);
 
         try (CloseableHttpClient client = HttpClients.createDefault()) {

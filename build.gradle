@@ -5,6 +5,9 @@ plugins {
     id 'com.github.johnrengelman.shadow' version '6.1.0'
 }
 
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8
+
 archivesBaseName = 'yarn-cli'
 version = '0.1.0'
 group = 'io.github.bymartrixx'
