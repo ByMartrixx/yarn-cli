@@ -279,6 +279,7 @@ public class MappingsManager {
         }
     }
 
+    @FunctionalInterface
     private interface DescriptoredProvider {
         Collection<? extends Descriptored> provide(ClassDef classDef);
     }
