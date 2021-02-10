@@ -1,0 +1,38 @@
+plugins {
+    // Apply the application plugin to add support for building a CLI application in Java.
+    id 'application'
+    id 'java'
+    id 'com.github.johnrengelman.shadow' version '6.1.0'
+}
+
+archivesBaseName = 'yarn-cli'
+version = '0.1.0'
+group = 'io.github.bymartrixx'
+
+repositories {
+    mavenCentral()
+    maven {
+        name = 'Fabric'
+        url = 'https://maven.fabricmc.net'
+    }
+}
+
+dependencies {
+    implementation 'org.jetbrains:annotations:20.1.0'
+
+    // Use JUnit test framework.
+    testImplementation 'junit:junit:4.13'
+
+    // This dependency is used by the application.
+    implementation 'org.jline:jline:3.19.0'
+    implementation 'net.fabricmc:tiny-mappings-parser:+'
+    implementation 'org.apache.httpcomponents.client5:httpclient5:5.0.3'
+    implementation 'com.google.code.gson:gson:2.8.6'
+    implementation 'org.slf4j:slf4j-simple:2.0.0-alpha1'
+    compile 'org.jetbrains:annotations:20.1.0'
+}
+
+application {
+    // Define the main class for the application.
+    mainClassName = 'io.github.bymartrixx.yarncli.YarnCli'
+}
