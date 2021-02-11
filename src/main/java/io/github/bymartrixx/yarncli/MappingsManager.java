@@ -168,7 +168,7 @@ public class MappingsManager {
 
         if (!versionCache.containsKey(snapshot)) {
             if (snapshotYarnVersion != null) {
-                TinyTree snaphotVersion = openMappings(release);
+                TinyTree snaphotVersion = openMappings(snapshot);
 
                 if (snaphotVersion != null) {
                     versionCache.remove(versionNames.get("snapshot"));
