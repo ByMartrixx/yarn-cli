@@ -215,14 +215,17 @@ public class YarnCli {
                 }
                 break;
             case "version":
-                String version;
                 try {
-                    version = args[1];
-                } catch (ArrayIndexOutOfBoundsException e) {
-                    version = "";
-                }
+                    String version = args[1];
 
-                mappingsManager.selectVersion(version);
+                    if (!version.equals("")) {
+                        mappingsManager.selectVersion(version);
+                    }
+                } catch (ArrayIndexOutOfBoundsException e) {
+                    lightBlue();
+                    printf("Currently using Minecraft %s%n", mappingsManager.getSelectedVersion());
+                    reset();
+                }
                 break;
             default:
                 printf("Unknown command \"%s\"%n", command);
@@ -245,7 +248,8 @@ public class YarnCli {
                 "\tversion [<version>] Change the Minecraft version.",
                 "\t                      Use \"release\" for latest release and",
                 "\t                      \"snapshot\" for latest snapshot. If",
-                "\t                      unspecified default to latest release.",
+                "\t                      version unspecified shows which version",
+                "\t                      is currently in use",
                 "\thelp                Show this message",
                 "\th                   -> help",
                 "\texit                Exit the program",

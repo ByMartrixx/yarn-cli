@@ -311,6 +311,13 @@ public class MappingsManager {
                 mcVersion = version;
         }
 
+        if (mcVersion.equals(this.getSelectedVersion())) {
+            OutputUtil.yellow();
+            OutputUtil.printf("Already using Minecraft %s!%n", mcVersion);
+            OutputUtil.reset();
+            return;
+        }
+
         // A progress bar to show the mappings download
         YarnCli.SpinningProgressBar downloadProgressBar = new YarnCli.SpinningProgressBar(String.format("Downloading Yarn mappings for %s... ", mcVersion), "[ done ]\n", 50, YarnCli.SPINNING_PROGRESS_BAR_FRAMES);
 
@@ -325,7 +332,7 @@ public class MappingsManager {
 
         this.selectedVersion = mcVersion;
         OutputUtil.lightBlue();
-        OutputUtil.printf("Changed to version \"%s\"%n", mcVersion);
+        OutputUtil.printf("Changed to Minecraft %s%n", mcVersion);
         OutputUtil.reset();
     }
 
