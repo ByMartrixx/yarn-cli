@@ -10,6 +10,7 @@ import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
@@ -33,7 +34,7 @@ public class MappingsManager {
     private final Map<String, @Nullable TinyTree> versionCache = new HashMap<>();
     public final Map<String, String> versionNames = new HashMap<>();
     public final Map<String, String> yarnVersions = new HashMap<>();
-    public String selectedVersion;
+    private String selectedVersion;
 
     public MappingsManager() {
         this.gson = new Gson();
@@ -185,6 +186,11 @@ public class MappingsManager {
 
     @Nullable
     private TinyTree openMappings(String mcVersion) {
+        return this.openMappings(mcVersion, () -> {}, () -> {});
+    }
+
+    @Nullable
+    private TinyTree openMappings(String mcVersion, Callback startDownloadCallback, Callback finishDownloadCallback) {
         String latestYarnVersion = this.getLatestYarnVersion(mcVersion);
         if (latestYarnVersion == null) {
             return null;
@@ -198,28 +204,40 @@ public class MappingsManager {
         Path appJarPath = Paths.get(YarnCli.appPath.toString(), latestYarnVersion + ".jar");
         File loomTinyFile = new File(YarnCli.loomPath.toFile(), String.format("yarn-%s-v2.tiny", latestYarnVersion));
 
-        try {
-            if (!appTinyPath.toFile().exists()) {
-                if (loomTinyFile.exists()) {
+        if (!appTinyPath.toFile().exists()) {
+            if (loomTinyFile.exists()) {
+                try {
                     BufferedReader bufferedReader = Files.newBufferedReader(loomTinyFile.toPath(), StandardCharsets.UTF_8);
                     return TinyMappingFactory.loadWithDetection(bufferedReader);
-                } else {
-                    CloseableHttpClient client = HttpClients.createDefault();
-
-                    HttpGet request = new HttpGet(MAVEN_URL.replace("{VERSION}", latestYarnVersion));
-                    CloseableHttpResponse response = client.execute(request);
-
-                    Files.copy(response.getEntity().getContent(), appJarPath, StandardCopyOption.REPLACE_EXISTING);
-
-                    FileSystem fileSystem = FileSystems.newFileSystem(appJarPath, null);
-                    Files.copy(fileSystem.getPath("mappings/mappings.tiny"), appTinyPath, StandardCopyOption.REPLACE_EXISTING);
-
-                    fileSystem.close();
-                    response.close();
-                    client.close();
+                } catch (IOException e) {
+                    e.printStackTrace(); // If it fails, try to use the app folder tiny file
                 }
             }
 
+            try {
+                startDownloadCallback.callback();
+                CloseableHttpClient client = HttpClients.createDefault();
+
+                HttpGet request = new HttpGet(MAVEN_URL.replace("{VERSION}", latestYarnVersion));
+                CloseableHttpResponse response = client.execute(request);
+
+                Files.copy(response.getEntity().getContent(), appJarPath, StandardCopyOption.REPLACE_EXISTING);
+
+                FileSystem fileSystem = FileSystems.newFileSystem(appJarPath, null);
+                Files.copy(fileSystem.getPath("mappings/mappings.tiny"), appTinyPath, StandardCopyOption.REPLACE_EXISTING);
+
+                finishDownloadCallback.callback();
+                fileSystem.close();
+                response.close();
+                client.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+                finishDownloadCallback.callback(); // If not called, a progress bar would spin indefinitely
+                return null;
+            }
+        }
+
+        try {
             BufferedReader bufferedReader = Files.newBufferedReader(appTinyPath, StandardCharsets.UTF_8);
             return TinyMappingFactory.loadWithDetection(bufferedReader);
         } catch (IOException e) {
@@ -248,8 +266,10 @@ public class MappingsManager {
             client.close();
 
             return metaYarnVersion.version;
-        } catch (IOException | ArrayIndexOutOfBoundsException e) {
+        } catch (IOException e) {
             e.printStackTrace();
+            return null;
+        } catch (ArrayIndexOutOfBoundsException ignored) {
             return null;
         }
     }
@@ -267,16 +287,50 @@ public class MappingsManager {
         return response.latest;
     }
 
-    public void selectVersion(String version) {
-        if (version == null || version.equals("")) {
-            this.selectedVersion = this.versionNames.get("release");
-        } else if (!version.matches(VERSION_REGEX)) {
+    public void selectVersion(@NotNull String version) {
+        if (!version.matches(VERSION_REGEX) && !version.equals("")) {
             OutputUtil.yellow();
             OutputUtil.printf("Invalid minecraft version specified: \"%s\"%n", version);
             OutputUtil.reset();
-        } else {
-            this.selectedVersion = this.versionNames.getOrDefault(version, version);
+            return;
         }
+
+        // Get the minecraft version
+        String mcVersion;
+        switch (version.toLowerCase()) {
+            case "":
+                mcVersion = YarnCli.latest.release;
+                break;
+            case "release":
+                mcVersion = versionNames.getOrDefault(version.toLowerCase(), YarnCli.latest.release);
+                break;
+            case "snapshot":
+                mcVersion = versionNames.getOrDefault(version.toLowerCase(), YarnCli.latest.snapshot);
+                break;
+            default:
+                mcVersion = version;
+        }
+
+        // A progress bar to show the mappings download
+        YarnCli.SpinningProgressBar downloadProgressBar = new YarnCli.SpinningProgressBar(String.format("Downloading Yarn mappings for %s... ", mcVersion), "[ done ]\n", 50, YarnCli.SPINNING_PROGRESS_BAR_FRAMES);
+
+        // Check if there are Yarn mappings for the version, if there are they will be downloaded if required
+        TinyTree dummy = this.openMappings(mcVersion, downloadProgressBar::startSpinning, downloadProgressBar::stopSpinning);
+        if (dummy == null) {
+            OutputUtil.red();
+            OutputUtil.printf("Unable to find Yarn mappings for Minecraft %s%n", mcVersion);
+            OutputUtil.reset();
+            return;
+        }
+
+        this.selectedVersion = mcVersion;
+        OutputUtil.lightBlue();
+        OutputUtil.printf("Changed to version \"%s\"%n", mcVersion);
+        OutputUtil.reset();
+    }
+
+    public String getSelectedVersion() {
+        return this.selectedVersion;
     }
 
     @FunctionalInterface
@@ -284,4 +338,8 @@ public class MappingsManager {
         Collection<? extends Descriptored> provide(ClassDef classDef);
     }
 
+    @FunctionalInterface
+    interface Callback {
+        void callback();
+    }
 }

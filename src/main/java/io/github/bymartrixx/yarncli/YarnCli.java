@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.Locale;
 
 public class YarnCli {
-    private static final String[] SPINNING_PROGRESS_BAR_FRAMES = {
+    public static final String[] SPINNING_PROGRESS_BAR_FRAMES = {
             "[      ]",
             "[      ]",
             "[=     ]",
@@ -41,6 +41,7 @@ public class YarnCli {
 
     private static final String prompt = "yarncli> ";
     private static MappingsManager mappingsManager;
+    public static MinecraftLatest latest;
 
     public static void main(String[] args) {
         try {
@@ -58,24 +59,24 @@ public class YarnCli {
             LineReader reader = LineReaderBuilder.builder().terminal(terminal).build();
 
             // Get latest versions
-            SpinningProgressBar spinningProgressBar = new SpinningProgressBar("Getting latest Minecraft versions... ", 50, SPINNING_PROGRESS_BAR_FRAMES);
+            SpinningProgressBar spinningProgressBar = new SpinningProgressBar("Getting latest Minecraft versions... ", "[ done ]\n", 50, SPINNING_PROGRESS_BAR_FRAMES);
             spinningProgressBar.startSpinning();
-            MinecraftLatest minecraftLatest = mappingsManager.getLatestMinecraftVersions();
-            spinningProgressBar.stopSpinning("[ done ]\n");
+            latest = mappingsManager.getLatestMinecraftVersions();
+            spinningProgressBar.stopSpinning();
 
             // Setup mappingsManager
-            spinningProgressBar = new SpinningProgressBar("Getting Yarn versions... ", 50, SPINNING_PROGRESS_BAR_FRAMES);
+            spinningProgressBar = new SpinningProgressBar("Getting Yarn versions... ", "[ done ]\n", 50, SPINNING_PROGRESS_BAR_FRAMES);
             spinningProgressBar.startSpinning();
-            mappingsManager.cacheMappings(minecraftLatest.release, minecraftLatest.snapshot);
-            spinningProgressBar.stopSpinning("[ done ]\n");
+            mappingsManager.cacheMappings(latest.release, latest.snapshot);
+            spinningProgressBar.stopSpinning();
 
-            printVersions(minecraftLatest);
+            printVersions();
             println("Use \"help\" to get a list of commands");
 
             String line;
             while (true) {
                 line = "";
-                line = reader.readLine(String.format("\033[32m%s\033[0m", prompt));
+                line = reader.readLine(String.format("\033[92m%s\033[0m", prompt));
                 line = line.trim();
                 terminal.flush();
 
@@ -93,17 +94,18 @@ public class YarnCli {
         }
     }
 
-    private static void printVersions(MinecraftLatest latest) {
-        String versionsFormat = "\tRelease: %s%n\tSnapshot: %s%n";
+    private static void printVersions() {
+        String format = "\tRelease: %s%n\tSnapshot: %s%n";
 
-        String mcVersions = String.format(versionsFormat, latest.release, latest.snapshot);
+        String mc = String.format(format, latest.release, latest.snapshot);
 
         String yarnRelease = mappingsManager.yarnVersions.getOrDefault(latest.release, "No Yarn mappings found for " + latest.release);
         String yarnSnaphot = mappingsManager.yarnVersions.getOrDefault(latest.snapshot, "No Yarn mappings found for " + latest.snapshot);
-        String yarnVersions = String.format(versionsFormat, yarnRelease, yarnSnaphot);
+        String yarn = String.format(format, yarnRelease, yarnSnaphot);
 
-        printf("Using Minecraft versions: %n%s%n", mcVersions);
-        printf("Using Yarn versions: %n%s%n", yarnVersions);
+        printf("Minecraft versions: %n%s%n", mc);
+        printf("Yarn versions: %n%s%n", yarn);
+        printf("Using latest Minecraft release (%s)%n", latest.release);
     }
 
     public static void executeCommand(String line) {
@@ -133,7 +135,7 @@ public class YarnCli {
 
                     if (mappingsData == null) {
                         red();
-                        println("Unable to find Yarn mappings for " + mappingsManager.selectedVersion);
+                        println("Unable to find Yarn mappings for " + mappingsManager.getSelectedVersion());
                         reset();
                         break;
                     } else if (mappingsData.isEmpty()) {
@@ -166,7 +168,7 @@ public class YarnCli {
 
                     if (mappingsData == null) {
                         red();
-                        println("Unable to find Yarn mappings for " + mappingsManager.selectedVersion);
+                        println("Unable to find Yarn mappings for " + mappingsManager.getSelectedVersion());
                         reset();
                         break;
                     } else if (mappingsData.isEmpty()) {
@@ -199,7 +201,7 @@ public class YarnCli {
 
                     if (mappingsData == null) {
                         red();
-                        println("Unable to find Yarn mappings for " + mappingsManager.selectedVersion);
+                        println("Unable to find Yarn mappings for " + mappingsManager.getSelectedVersion());
                         reset();
                         break;
                     } else if (mappingsData.isEmpty()) {
@@ -217,7 +219,7 @@ public class YarnCli {
                 try {
                     version = args[1];
                 } catch (ArrayIndexOutOfBoundsException e) {
-                    version = "release";
+                    version = "";
                 }
 
                 mappingsManager.selectVersion(version);
@@ -308,7 +310,7 @@ public class YarnCli {
         };
 
         underline(); bold();
-        printf("Minecraft %s / %d %s", mappingsManager.selectedVersion, results.size(), results.size() > 1 ? "results" : "result");
+        printf("Minecraft %s / %d %s", mappingsManager.getSelectedVersion(), results.size(), results.size() > 1 ? "results" : "result");
         reset();
         print("\n\n");
 
@@ -319,14 +321,16 @@ public class YarnCli {
 
     static class SpinningProgressBar extends Thread {
         private final String msg;
+        private final String doneMsg;
         private final int delay;
         private final String[] frames;
 
         private boolean spinning;
         private int frameNumber = 0;
 
-        SpinningProgressBar(String msg, int delay, String ... frames) {
+        SpinningProgressBar(String msg, String doneMsg, int delay, String ... frames) {
             this.msg = msg;
+            this.doneMsg = doneMsg;
             this.delay = delay;
             this.frames = frames;
         }
@@ -336,7 +340,7 @@ public class YarnCli {
             this.start();
         }
 
-        public void stopSpinning(String doneMsg) {
+        public void stopSpinning() {
             this.spinning = false;
             try {
                 this.join();
@@ -346,7 +350,7 @@ public class YarnCli {
             yellow();
             OutputUtil.print(this.msg);
             reset();
-            OutputUtil.print(doneMsg);
+            OutputUtil.print(this.doneMsg);
         }
 
         @Override
