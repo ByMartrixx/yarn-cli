@@ -70,6 +70,7 @@ public class YarnCli {
             spinningProgressBar.stopSpinning("[ done ]\n");
 
             printVersions(minecraftLatest);
+            println("Use \"help\" to get a list of commands");
 
             String line;
             while (true) {
@@ -264,21 +265,25 @@ public class YarnCli {
             Descriptored member = result.member;
 
             underline(); bold();
-            println("Class names\n");
+            print("Class names");
             reset();
+            print("\n\n");
+
             printf("\tOfficial > %s%n", classDef.getName(NS_OFFICIAL));
             printf("\tIntermediary > %s%n", classDef.getName(NS_INTERMEDIARY));
             printf("\tYarn > %s%n%n", classDef.getName(NS_NAMED));
 
             underline(); bold();
             if (member == null) {
-                println("Access widener\n");
+                print("Access widener");
                 reset();
+                print("\n\n");
 
                 printf("\taccessible\tclass\t%s%n", classDef.getName(NS_NAMED));
             } else {
-                println("Member names\n");
+                print("Member names");
                 reset();
+                print("\n\n");
 
                 printf("\tOfficial > %s%n", member.getName(NS_OFFICIAL));
                 printf("\tIntermediary > %s%n", member.getName(NS_INTERMEDIARY));
@@ -287,21 +292,25 @@ public class YarnCli {
                 String type = (member instanceof MethodDef) ? "method" : "field";
 
                 underline(); bold();
-                println("Descriptor\n");
+                print("Descriptor");
                 reset();
+                print("\n\n");
 
                 printf("\t%s%n%n", member.getDescriptor(NS_NAMED));
 
                 underline(); bold();
-                println("Access widener\n");
+                print("Access widener");
                 reset();
+                print("\n\n");
 
                 printf("\taccessible\t%s\t%s\t%s\t%s%n%n", type, classDef.getName(NS_NAMED), member.getName(NS_NAMED), member.getDescriptor(NS_NAMED));
             }
         };
 
         underline(); bold();
-        printf("Minecraft %s / %d %s%n%n", mappingsManager.selectedVersion, results.size(), results.size() > 1 ? "results" : "result");
+        printf("Minecraft %s / %d %s", mappingsManager.selectedVersion, results.size(), results.size() > 1 ? "results" : "result");
+        reset();
+        print("\n\n");
 
         for (MappingsResult result : results) {
             printer.print(result);
