@@ -203,4 +203,32 @@ public class OutputUtil {
     public static void gray() {
         CSI("90m");
     }
+
+    public static void lightRed() {
+        CSI("91m");
+    }
+
+    public static void lightGreen() {
+        CSI("92m");
+    }
+
+    public static void lightYellow() {
+        CSI("93m");
+    }
+
+    public static void lightBlue() {
+        CSI("94m");
+    }
+
+    public static void lightMagenta() {
+        CSI("95m");
+    }
+
+    public static void lightCyan() {
+        CSI("96m");
+    }
+
+    public static void brighterWhite() {
+        CSI("97m");
+    }
 }
