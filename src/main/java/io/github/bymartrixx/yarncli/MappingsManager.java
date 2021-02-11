@@ -68,7 +68,7 @@ public class MappingsManager {
     }
 
     private String preProcessClassQuery(String query) {
-        if (query.matches("[\\d]")) {
+        if (query.matches("[\\d]+")) {
             return "class_" + query;
         }
 
@@ -89,7 +89,7 @@ public class MappingsManager {
     }
 
     private String preProcessMethodQuery(String query) {
-        if (query.matches("[\\d]")) {
+        if (query.matches("[\\d]+")) {
             return "method_" + query;
         }
 
@@ -110,7 +110,7 @@ public class MappingsManager {
     }
 
     private String preProcessFieldQuery(String query) {
-        if (query.matches("[\\d]")) {
+        if (query.matches("[\\d]+")) {
             return "field_" + query;
         }
 
